@@ -1,0 +1,22 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Route for rendering the search page
+GET    /                       controllers.YouTubeController.search()
+
+# WebSocket endpoint for real-time updates
+GET    /ws                     controllers.YouTubeController.ws()
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+# Routes for tag-related functionalities
+GET     /tag/videos/:tagName        controllers.YouTubeController.getVideosByTag(tagName: String)
+
+# Route for fetching the channel profile
+GET     /channel/:channelId         controllers.YouTubeController.fetchChannelProfile(channelId: String)
+
+GET     /wordStats/:query         controllers.YouTubeController.getWordStats(query: String)
+
+

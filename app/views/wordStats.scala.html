@@ -1,0 +1,47 @@
+@(query: String, wordStats: Map[String, Integer])
+
+<html>
+  <head>
+    <title>Word Statistics for "@query"</title>
+    <style>
+            body {
+              font-family: Arial, sans-serif;
+              text-align: center;
+              background-color: #f9f9f9;
+            }
+            table {
+              margin: 20px auto;
+              border-collapse: collapse;
+              width: 80%;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+            }
+            th {
+              background-color: #e74c3c;
+              color: white;
+            }
+    </style>
+  </head>
+  <body>
+    <h1>Word Statistics for: "@query"</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Word</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+      @for((word, count) <- wordStats) {
+        <tr>
+          <td>@word</td>
+          <td>@count</td>
+        </tr>
+      }
+      </tbody>
+    </table>
+  </body>
+</html>

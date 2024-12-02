@@ -1,0 +1,133 @@
+@(channelProfile: com.fasterxml.jackson.databind.JsonNode)
+
+@import scala.jdk.CollectionConverters._
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@if(channelProfile != null && channelProfile.get("title") != null) { @channelProfile.get("title").asText() } - Channel Profile</title>
+  <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/main.css")">
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+
+    .channel-profile {
+        max-width: 800px;
+        margin: 20px auto;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .channel-header {
+        text-align: center;
+    }
+
+    .channel-header img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin-bottom: 15px;
+    }
+
+    .channel-header h1 {
+        font-size: 24px;
+        color: #333;
+        margin: 0;
+    }
+
+    .channel-header p {
+        color: #555;
+        margin: 5px 0;
+    }
+
+    .statistics {
+        margin-top: 20px;
+        text-align: left;
+    }
+
+    .statistics p {
+        font-size: 16px;
+        margin: 5px 0;
+    }
+
+    .recent-videos {
+        margin-top: 20px;
+    }
+
+    .recent-videos h2 {
+        font-size: 20px;
+        color: #e74c3c;
+        margin-bottom: 15px;
+    }
+
+    .video-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .video-item img {
+        width: 120px;
+        height: auto;
+        border-radius: 5px;
+        margin-right: 15px;
+    }
+
+    .video-details {
+        flex-grow: 1;
+    }
+
+    .video-details a {
+        text-decoration: none;
+        color: #3498db;
+        font-weight: bold;
+    }
+
+    .video-details a:hover {
+        text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+<div class="channel-profile">
+  <div class="channel-header">
+    <img src="@if(channelProfile != null && channelProfile.get("thumbnail") != null) { @channelProfile.get("thumbnail").asText() }"
+    alt="@if(channelProfile != null && channelProfile.get("title") != null) { @channelProfile.get("title").asText() }">
+    <h1>@if(channelProfile != null && channelProfile.get("title") != null) { @channelProfile.get("title").asText() }</h1>
+    <p>@if(channelProfile != null && channelProfile.get("description") != null) { @channelProfile.get("description").asText() }</p>
+  </div>
+  <div class="statistics">
+    <p><strong>Subscribers:</strong> @if(channelProfile != null && channelProfile.get("subscriberCount") != null) { @channelProfile.get("subscriberCount").asText() }</p>
+    <p><strong>Total Views:</strong> @if(channelProfile != null && channelProfile.get("totalViews") != null) { @channelProfile.get("totalViews").asText() }</p>
+    <p><strong>Videos:</strong> @if(channelProfile != null && channelProfile.get("videoCount") != null) { @channelProfile.get("videoCount").asText() }</p>
+  </div>
+  <div class="recent-videos">
+    <h2>Latest 10 Videos</h2>
+    @if(channelProfile != null && channelProfile.get("recentVideos") != null) {
+    @for(video <- channelProfile.get("recentVideos").elements().asScala) {
+    <div class="video-item">
+      <img src="@if(video.get("thumbnailUrl") != null) { @video.get("thumbnailUrl").asText() }"
+      alt="@if(video.get("title") != null) { @video.get("title").asText() }">
+      <div class="video-details">
+        <a href="https://www.youtube.com/watch?v=@if(video.get("videoId") != null) { @video.get("videoId").asText() }" target="_blank">
+        @if(video.get("title") != null) { @video.get("title").asText() }
+        </a>
+        <p>@if(video.get("description") != null) { @video.get("description").asText() }</p>
+      </div>
+    </div>
+    }
+    }
+  </div>
+</div>
+</body>
+</html>

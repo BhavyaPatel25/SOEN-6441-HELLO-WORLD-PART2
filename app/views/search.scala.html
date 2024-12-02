@@ -1,0 +1,313 @@
+@(title: String)
+
+<html>
+<head>
+    <title>@title</title>
+
+    <!-- Link to main CSS stylesheet -->
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("stylesheets/main.css")">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            width: 40%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+
+        .query-section {
+            margin: 30px auto;
+            width: 80%;
+            text-align: left;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            display: flex;
+            gap: 15px;
+        }
+
+        .video-item img {
+            max-width: 120px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .video-details {
+            flex-grow: 1;
+        }
+
+        .tags-container {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag-link {
+            color: #3498db;
+            text-decoration: none;
+            cursor: pointer;
+            background-color: #f2f2f2;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .tag-link:hover {
+            background-color: #e0e0e0;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<!-- Main Title -->
+<a href="@routes.YouTubeController.search()"><h1>Welcome to YT Lytics</h1></a>
+
+<!-- Search Bar -->
+<form id="searchForm">
+    <div>
+        <label for="query">Enter search terms</label>
+        <input type="text" id="query" name="query" placeholder="Search for videos..." />
+        <button type="button" id="searchButton">Go!</button>
+    </div>
+</form>
+
+<!-- Results -->
+<div id="results">
+    <!-- Results dynamically inserted by WebSocket -->
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchButton = document.getElementById("searchButton");
+        const queryInput = document.getElementById("query");
+        const resultsDiv = document.getElementById("results");
+
+        const socket = new WebSocket("ws://localhost:9000/ws");
+
+        socket.onopen = () => {
+            console.log("WebSocket connection established.");
+        };
+
+        socket.onmessage = (event) => {
+            console.log("Received data from server:", event.data);
+
+            let data;
+            try {
+                data = JSON.parse(event.data);
+            } catch (err) {
+                console.error("Error parsing WebSocket message:", err);
+                return;
+            }
+
+            if (data.query && data.overallSentiment) {
+                renderQueryHeading(data.query, data.overallSentiment); // Render heading first
+            }
+
+            if (Array.isArray(data)) {
+                renderVideoResults(data, queryInput.value.trim());
+            } else {
+                console.warn("Unexpected response format or no results found.");
+            }
+        };
+
+
+        socket.onerror = (error) => {
+            console.error("WebSocket Error:", error);
+        };
+
+        socket.onclose = () => {
+            console.log("WebSocket connection closed.");
+        };
+
+        searchButton.addEventListener("click", () => {
+            const query = queryInput.value.trim();
+            if (query) {
+                const message = { action: "search", query: query };
+                socket.send(JSON.stringify(message));
+            } else {
+                alert("Please enter a search term.");
+            }
+        });
+
+        function renderQueryHeading(query, sentiment) {
+            let queryContainer = document.getElementById(`query-container-${CSS.escape(query)}`);
+
+            // If no container exists for this query, create one
+            if (!queryContainer) {
+                queryContainer = document.createElement("div");
+                queryContainer.id = `query-container-${CSS.escape(query)}`;
+                queryContainer.className = "query-container";
+                resultsDiv.prepend(queryContainer);
+            }
+
+            // Check if the heading already exists
+            let existingHeading = queryContainer.querySelector("h2");
+            if (!existingHeading) {
+                const heading = document.createElement("h2");
+                heading.innerHTML = `Results for: ${query}`;
+
+                // Add the "More Stats" link next to the heading
+                const moreStatsLink = document.createElement("a");
+                moreStatsLink.textContent = "More Stats";
+                moreStatsLink.href = `/wordStats/query=${encodeURIComponent(query)}`;
+                moreStatsLink.style.marginLeft = "20px";
+
+                // Append the heading and link
+                queryContainer.appendChild(heading);
+                queryContainer.appendChild(moreStatsLink);
+            }
+
+            // Render sentiment at the top, below the query heading
+            if (sentiment) {
+                const sentimentElement = document.createElement("p");
+                sentimentElement.innerHTML = `Sentiment: <strong>${sentiment}</strong>`;
+                sentimentElement.style.fontSize = "18px";
+                sentimentElement.style.margin = "10px 0";
+                sentimentElement.style.color = "#3498db";
+
+                // Insert sentiment at the top of the query container, after the heading
+                queryContainer.appendChild(sentimentElement);
+            } else {
+                console.warn("No sentiment data found for query:", query);
+            }
+        }
+
+
+        function renderVideoResults(videos, query) {
+            let queryContainer = document.getElementById(`query-container-${CSS.escape(query)}`);
+
+            // If no container exists for this query, create one
+            if (!queryContainer) {
+                queryContainer = document.createElement("div");
+                queryContainer.id = `query-container-${CSS.escape(query)}`;
+                queryContainer.className = "query-container";
+                resultsDiv.prepend(queryContainer);
+            }
+
+            const existingResults = queryContainer.querySelector(".query-section");
+            if (existingResults) {
+                existingResults.remove(); // Remove old results for the same query
+            }
+
+            const querySection = document.createElement("div");
+            querySection.classList.add("query-section");
+
+            const overallScoresEntry = videos.shift(); // Remove the first entry from the list
+            if (overallScoresEntry && (overallScoresEntry.overallGradeLevel || overallScoresEntry.overallEaseScore)) {
+                const overallScoresElement = document.createElement("p");
+                overallScoresElement.innerHTML = `
+        <strong>Overall Grade Level:</strong> ${overallScoresEntry.overallGradeLevel || "N/A"}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Overall Reading Ease:</strong> ${overallScoresEntry.overallEaseScore || "N/A"}
+    `;
+                overallScoresElement.style.fontSize = "18px";
+                overallScoresElement.style.color = "#3498db";
+                overallScoresElement.style.display = "inline-block";
+                overallScoresElement.style.margin = "10px 0";
+                querySection.appendChild(overallScoresElement);
+            }
+
+            videos.forEach((video, index) => {
+                if (!video.title || !video.channelTitle || !video.defaultThumbnail) {
+                    console.warn(`Skipping incomplete video data for index ${index}:`, video);
+                    return;
+                }
+
+                const videoItem = document.createElement("div");
+                videoItem.classList.add("video-item");
+
+                // Add the video details section
+                const videoDetails = document.createElement("div");
+                videoDetails.className = "video-details";
+
+                const videoLink = video.videoId
+                        ? `<a href="https://www.youtube.com/watch?v=${video.videoId}" target="_blank">${video.title}</a>`
+                        : `${video.title} (No link available)`;
+
+                videoDetails.innerHTML = `
+            <p><strong>Title:</strong> ${videoLink}</p>
+            <p><strong>Channel:</strong> <a href="/channel/${video.channelId}" target="_blank">${video.channelTitle}</a></p>
+            <p><strong>Description:</strong> ${video.description || "No description available."}</p>
+            <p><strong>Grade Level:</strong> ${video.gradeLevel || "N/A"}</p>
+            <p><strong>Reading Ease:</strong> ${video.readingEaseScore || "N/A"}</p>
+        `;
+
+                // Add the tags section below the description
+                if (video.tags) {
+                    const tagsContainer = document.createElement("div");
+                    tagsContainer.className = "tags-container";
+                    tagsContainer.innerHTML = `<strong>Tags:</strong>`;
+                    video.tags.split(", ").forEach((tag) => {
+                        const tagLink = document.createElement("a");
+                        tagLink.href = `/tag/videos/${tag}`;
+                        tagLink.className = "tag-link";
+                        tagLink.target = "_blank";
+                        tagLink.textContent = tag;
+                        tagsContainer.appendChild(tagLink);
+                    });
+                    videoDetails.appendChild(tagsContainer); // Add tags to videoDetails, after the description
+                }
+
+                // Add the thumbnail
+                const thumbnailDiv = document.createElement("div");
+                const thumbnailImg = document.createElement("img");
+                thumbnailImg.src = video.defaultThumbnail;
+                thumbnailImg.alt = "Thumbnail";
+                thumbnailDiv.appendChild(thumbnailImg);
+
+                // Append videoDetails and thumbnail to the videoItem
+                videoItem.appendChild(thumbnailDiv);
+                videoItem.appendChild(videoDetails);
+
+                // Add the videoItem to the querySection
+                querySection.appendChild(videoItem);
+            });
+
+            queryContainer.appendChild(querySection); // Add results to the query container
+        }
+    });
+</script>
+</body>
+</html>

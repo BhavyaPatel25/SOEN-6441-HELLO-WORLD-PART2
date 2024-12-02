@@ -1,0 +1,41 @@
+#results {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.video-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.video-item img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 10px;
+}
+.tags-container {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tag-link {
+    color: #3498db;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #f2f2f2;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.tag-link:hover {
+    background-color: #e0e0e0;
+    text-decoration: underline;
+}

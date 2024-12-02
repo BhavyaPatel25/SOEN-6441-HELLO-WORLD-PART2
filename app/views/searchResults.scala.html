@@ -1,0 +1,14 @@
+@(query: String, videos: List[Map[String, String]])
+
+@main("Videos for Tag: " + query) {
+<h1>Search Results for Tag: @query</h1>
+@for(video <- videos) {
+<div class="video-item">
+    <img src="@video.get("thumbnailUrl")" alt="Video Thumbnail" />
+    <p><strong>Title:</strong> <a href="https://www.youtube.com/watch?v=@video.get("videoId")" target="_blank">@video.get("title")</a></p>
+    <p><strong>Channel:</strong> <a href="@routes.YouTubeController.fetchChannelProfile(video.get("channelId"))">@video.get("channelTitle")</a></p>
+    <p><strong>Description:</strong> @video.get("description")</p>
+</div>
+<hr/>
+}
+}

@@ -1,0 +1,20 @@
+@(videoDetails: Map[String, String])
+
+<h1>@videoDetails.get("title")</h1>
+<p>@videoDetails.get("description")</p>
+<p>Likes: @videoDetails.get("likes")</p>
+<p>Views: @videoDetails.get("views")</p>
+
+<h3>Tags:</h3>
+<ul>
+    @for(tag <- videoDetails.get("tags").split(", ")) {
+    <li><a href="#" onclick="getTagDetails('@tag')">@tag</a></li>
+    }
+</ul>
+
+<script>
+    function getTagDetails(tag) {
+        const message = { action: "getTagDetails", tag: tag };
+        webSocket.send(JSON.stringify(message));
+    }
+</script>
